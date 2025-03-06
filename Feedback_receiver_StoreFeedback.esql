@@ -1,0 +1,44 @@
+PATH CacheUtil;
+
+
+CREATE COMPUTE MODULE Feedback_receiver_StoreFeedback
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		-- CALL CopyEntireMessage();
+		DECLARE Rating INTEGER;
+		DECLARE UserID, SerialNum, Feedback , Country , ISOCode CHARACTER;
+		
+		SET UserID = InputRoot.JSON.Data.userID;
+		SET SerialNum = InputRoot.JSON.Data.serialNumber;
+		SET Country = InputRoot.JSON.Data.Country;
+		SET Rating = InputRoot.JSON.Data.feedback.rating;
+		SET Feedback = InputRoot.JSON.Data.feedback.comment; 
+		
+		SET ISOCode = getFromIsoCache('IsoRecords',Country);
+		
+		INSERT INTO Database.dbo.Userfeedback(UserId, SLID, Comments, Rating, Timestamp, Country) VALUES (UserID, SerialNum, Feedback, Rating, CURRENT_TIMESTAMP, Country);
+		
+		SET OutputRoot.JSON.Data.ResultCode = '200';
+		SET OutputRoot.JSON.Data.ResultStatus = 'Success';
+		SET OutputRoot.JSON.Data.ResultMessage = 'Added the entry successfully for UserID: ' || UserID;
+		SET OutputRoot.JSON.Data.Country.CountryName = 'Added the entry successfully for Country: ' || Country;
+		SET OutputRoot.JSON.Data.Country.ISOCode =  ISOCode;
+		
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		SET OutputRoot = InputRoot;
+	END;
+END MODULE;
