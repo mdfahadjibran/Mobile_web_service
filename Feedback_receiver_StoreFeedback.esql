@@ -8,6 +8,7 @@ CREATE COMPUTE MODULE Feedback_receiver_StoreFeedback
 		-- CALL CopyEntireMessage();
 		DECLARE Rating INTEGER;
 		DECLARE UserID, SerialNum, Feedback , Country , ISOCode CHARACTER;
+		--Comment--
 		
 		SET UserID = InputRoot.JSON.Data.userID;
 		SET SerialNum = InputRoot.JSON.Data.serialNumber;
